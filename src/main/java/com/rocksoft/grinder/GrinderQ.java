@@ -17,6 +17,7 @@ public class GrinderQ<T> {
    * Constructs a new Grinder Queue
    *
    * @param numberThreads The maximum number of threads to apply to this queue
+   * @param consumerType The class representing the consumer event you have created to handle queue items
    */
   public GrinderQ(int numberThreads, Class<GrinderConsumer<T>> consumerType) {
     executorService = Executors.newScheduledThreadPool(numberThreads);
