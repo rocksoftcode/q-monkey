@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 
 public class GrinderQ<T> {
   private ScheduledExecutorService executorService;
-  private PoolMonitor poolMonitor;
   private Queue<T> delegate;
   Class<GrinderConsumer<T>> consumerType;
   int poolSize;
@@ -42,7 +41,7 @@ public class GrinderQ<T> {
    * @param timeout The amount of time, in milliseconds, the queue will stay alive without activity
    */
   public void start(Pulse pulse, long timeout) {
-    poolMonitor = new PoolMonitor(executorService, timeout);
+    PoolMonitor poolMonitor = new PoolMonitor(executorService, timeout);
     for (int i=0; i < poolSize; i++) {
       try {
         executorService.schedule(new PoolPoller<T>(delegate, poolMonitor, consumerType.newInstance()), pulse.value(), TimeUnit.MILLISECONDS);
