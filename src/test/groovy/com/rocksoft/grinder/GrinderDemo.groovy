@@ -3,11 +3,11 @@ package com.rocksoft.grinder
 class GrinderDemo {
 
   static void main(String[] args) {
-    GrinderQ<String> q = new GrinderQ<>(21, DemoConsumer)
+    GrinderQ<String> q = new GrinderQ<>(21)
     (1..1000).each { i ->
       q.offer('foobar' + i)
     }
-    q.start(Pulse.EXTRA_FAST, 100L)
+    q.start(new DemoConsumer(), Pulse.EXTRA_FAST, 100L)
     Thread.sleep(1000L)
 
     assert DemoConsumer.count == 1000

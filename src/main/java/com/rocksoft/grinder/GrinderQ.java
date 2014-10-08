@@ -9,19 +9,19 @@ import java.util.concurrent.TimeUnit;
 public class GrinderQ<T> {
   private ScheduledExecutorService executorService;
   private Queue<T> delegate;
-  Class<GrinderConsumer<T>> consumerType;
   int poolSize;
+
+  private static final Pulse DEFAULT_PULSE = Pulse.EXTRA_FAST;
+  private static final long DEFAULT_TIMEOUT = 5 * 60 * 1000;
 
   /**
    * Constructs a new Grinder Queue
    *
    * @param numberThreads The maximum number of threads to apply to this queue
-   * @param consumerType The class representing the consumer event you have created to handle queue items
    */
-  public GrinderQ(int numberThreads, Class<GrinderConsumer<T>> consumerType) {
+  public GrinderQ(int numberThreads) {
     executorService = Executors.newScheduledThreadPool(numberThreads);
     delegate = new ArrayBlockingQueue<T>(numberThreads * 10000);
-    this.consumerType = consumerType;
     poolSize = numberThreads;
   }
 
@@ -37,17 +37,24 @@ public class GrinderQ<T> {
 
   /**
    * Starts listening to the queue, operating on new entries
-   * @param pulse The frequency with which the queue is checked
+   *
+   * @param consumer An implementation of GrinderConsumer that will operate on a queue element
+   * @param pulse   The frequency with which the queue is checked
    * @param timeout The amount of time, in milliseconds, the queue will stay alive without activity
    */
-  public void start(Pulse pulse, long timeout) {
+  public void start(GrinderConsumer<T> consumer, Pulse pulse, long timeout) {
     PoolMonitor poolMonitor = new PoolMonitor(executorService, timeout);
-    for (int i=0; i < poolSize; i++) {
-      try {
-        executorService.scheduleWithFixedDelay(new PoolPoller<T>(delegate, poolMonitor, consumerType.newInstance()), 0L, pulse.value(), TimeUnit.MILLISECONDS);
-      } catch (ReflectiveOperationException e) {
-        System.err.println("Could not schedule task. Cause: " + e.getMessage());
-      }
+    for (int i = 0; i < poolSize; i++) {
+      executorService.scheduleWithFixedDelay(new PoolPoller<T>(delegate, poolMonitor, consumer), 0L, pulse.value(), TimeUnit.MILLISECONDS);
     }
+  }
+
+  /**
+   * Starts listening to the queue, operating on new entries with the default pulse and timeout settings
+   *
+   * @param consumer An implementation of GrinderConsumer that will operate on a queue element
+   */
+  public void start(GrinderConsumer<T> consumer) {
+    start(consumer, DEFAULT_PULSE, DEFAULT_TIMEOUT);
   }
 }

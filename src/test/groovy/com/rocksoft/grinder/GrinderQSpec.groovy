@@ -10,7 +10,7 @@ class GrinderQSpec extends Specification {
 
   def "Initializes correctly"() {
     when:
-    GrinderQ<String> q = new GrinderQ<>(6, TestConsumer)
+    GrinderQ<String> q = new GrinderQ<>(6)
 
     then:
     q.executorService.corePoolSize == 6
@@ -21,7 +21,7 @@ class GrinderQSpec extends Specification {
 
   def "Offer delegates to wrapped queue"() {
     setup:
-    GrinderQ<String> q = new GrinderQ<>(6, TestConsumer)
+    GrinderQ<String> q = new GrinderQ<>(6)
 
     when:
     q.offer("foobar")
@@ -33,15 +33,28 @@ class GrinderQSpec extends Specification {
 
   def "Creates threads with consumer tasks"() {
     setup:
-    GrinderQ<String> q = new GrinderQ<>(2, TestConsumer)
+    GrinderQ<String> q = new GrinderQ<>(2)
     q.executorService = Mock(ScheduledExecutorService)
 
     when:
-    q.start(Pulse.EXTRA_FAST, 1L)
+    q.start(new TestConsumer(), Pulse.EXTRA_FAST, 1L)
 
     then:
-    2 * q.executorService.scheduleWithFixedDelay({ it.delegate == q.delegate && it.consumer instanceof TestConsumer } as PoolPoller<String>, 0L, Pulse.EXTRA_FAST.value(), TimeUnit.MILLISECONDS)
+    2 * q.executorService.scheduleWithFixedDelay({ it.monitor.timeout == 1L && it.delegate == q.delegate && it.consumer instanceof TestConsumer } as PoolPoller<String>, 0L, Pulse.EXTRA_FAST.value(), TimeUnit.MILLISECONDS)
   }
+
+  def "Creates threads with consumer tasks using default values for pulse and timeout"() {
+    setup:
+    GrinderQ<String> q = new GrinderQ<>(2)
+    q.executorService = Mock(ScheduledExecutorService)
+
+    when:
+    q.start(new TestConsumer())
+
+    then:
+    2 * q.executorService.scheduleWithFixedDelay({ it.monitor.timeout == 300000 && it.delegate == q.delegate && it.consumer instanceof TestConsumer } as PoolPoller<String>, 0L, Pulse.EXTRA_FAST.value(), TimeUnit.MILLISECONDS)
+  }
+
 
   static class TestConsumer implements GrinderConsumer<String> {
 
