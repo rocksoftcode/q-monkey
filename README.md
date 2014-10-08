@@ -14,6 +14,6 @@ There are a couple of minor concessions to use grinder:
 
 *Usage* (Groovy)
 ```
-GrinderQ<String> q = new GrinderQ<>(5, MyConsumer)
-q.start(Pulse.FAST, 5000L)
+GrinderQ<String> q = new GrinderQ<>(5)
+q.start(myConsumer)
 ```
