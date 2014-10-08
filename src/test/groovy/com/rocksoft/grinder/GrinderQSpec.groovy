@@ -40,7 +40,7 @@ class GrinderQSpec extends Specification {
     q.start(Pulse.EXTRA_FAST, 1L)
 
     then:
-    2 * q.executorService.schedule({ it.delegate == q.delegate && it.consumer instanceof TestConsumer } as PoolPoller<String>, Pulse.EXTRA_FAST.value(), TimeUnit.MILLISECONDS)
+    2 * q.executorService.scheduleWithFixedDelay({ it.delegate == q.delegate && it.consumer instanceof TestConsumer } as PoolPoller<String>, 0L, Pulse.EXTRA_FAST.value(), TimeUnit.MILLISECONDS)
   }
 
   static class TestConsumer implements GrinderConsumer<String> {

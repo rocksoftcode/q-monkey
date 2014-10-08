@@ -44,7 +44,7 @@ public class GrinderQ<T> {
     PoolMonitor poolMonitor = new PoolMonitor(executorService, timeout);
     for (int i=0; i < poolSize; i++) {
       try {
-        executorService.schedule(new PoolPoller<T>(delegate, poolMonitor, consumerType.newInstance()), pulse.value(), TimeUnit.MILLISECONDS);
+        executorService.scheduleWithFixedDelay(new PoolPoller<T>(delegate, poolMonitor, consumerType.newInstance()), 0L, pulse.value(), TimeUnit.MILLISECONDS);
       } catch (ReflectiveOperationException e) {
         System.err.println("Could not schedule task. Cause: " + e.getMessage());
       }

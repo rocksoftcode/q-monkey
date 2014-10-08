@@ -17,7 +17,7 @@ public class PoolMonitor {
   }
 
   void logEmpty() {
-    if (System.currentTimeMillis() - lastQueueEntryReceived > timeout) {
+    if (System.currentTimeMillis() - lastQueueEntryReceived >= timeout) {
       pool.shutdownNow();
     }
   }
