@@ -55,6 +55,19 @@ class GrinderQSpec extends Specification {
     2 * q.executorService.scheduleWithFixedDelay({ it.monitor.timeout == 300000 && it.delegate == q.delegate && it.consumer instanceof TestConsumer } as PoolPoller<String>, 0L, Pulse.EXTRA_FAST.value(), TimeUnit.MILLISECONDS)
   }
 
+  def "Does not start threads if they are already running"() {
+    setup:
+    GrinderQ<String> q = new GrinderQ<>(2)
+    q.executorService = Mock(ScheduledExecutorService)
+    q.start(new TestConsumer())
+
+    when:
+    q.start(new TestConsumer())
+
+    then:
+    IllegalStateException e = thrown()
+    e.message == "Queue is already running"
+  }
 
   static class TestConsumer implements GrinderConsumer<String> {
 

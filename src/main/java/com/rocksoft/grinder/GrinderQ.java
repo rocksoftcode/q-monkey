@@ -10,6 +10,7 @@ public class GrinderQ<T> {
   private ScheduledExecutorService executorService;
   private Queue<T> delegate;
   int poolSize;
+  boolean isRunning;
 
   private static final Pulse DEFAULT_PULSE = Pulse.EXTRA_FAST;
   private static final long DEFAULT_TIMEOUT = 5 * 60 * 1000;
@@ -39,13 +40,18 @@ public class GrinderQ<T> {
    * Starts listening to the queue, operating on new entries
    *
    * @param consumer An implementation of GrinderConsumer that will operate on a queue element
-   * @param pulse   The frequency with which the queue is checked
-   * @param timeout The amount of time, in milliseconds, the queue will stay alive without activity
+   * @param pulse    The frequency with which the queue is checked
+   * @param timeout  The amount of time, in milliseconds, the queue will stay alive without activity
    */
   public void start(GrinderConsumer<T> consumer, Pulse pulse, long timeout) {
-    PoolMonitor poolMonitor = new PoolMonitor(executorService, timeout);
-    for (int i = 0; i < poolSize; i++) {
-      executorService.scheduleWithFixedDelay(new PoolPoller<T>(delegate, poolMonitor, consumer), 0L, pulse.value(), TimeUnit.MILLISECONDS);
+    if (isRunning) {
+      throw new IllegalStateException("Queue is already running");
+    } else {
+      PoolMonitor poolMonitor = new PoolMonitor(executorService, timeout);
+      for (int i = 0; i < poolSize; i++) {
+        executorService.scheduleWithFixedDelay(new PoolPoller<T>(delegate, poolMonitor, consumer), 0L, pulse.value(), TimeUnit.MILLISECONDS);
+      }
+      isRunning = true;
     }
   }
 
