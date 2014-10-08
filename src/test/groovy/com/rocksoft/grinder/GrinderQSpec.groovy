@@ -1,5 +1,7 @@
 package com.rocksoft.grinder
 
+import com.rocksoft.grinder.event.GrinderQEvent
+import com.rocksoft.grinder.event.GrinderQEventListener
 import spock.lang.Specification
 
 import java.util.concurrent.ArrayBlockingQueue
@@ -67,6 +69,25 @@ class GrinderQSpec extends Specification {
     then:
     IllegalStateException e = thrown()
     e.message == "Queue is already running"
+  }
+
+  def "Adds listener to pool monitor"() {
+    setup:
+    GrinderQ<String> q = new GrinderQ<>(2)
+    q.poolMonitor = Mock(PoolMonitor)
+    TestListener listener = new TestListener()
+
+    when:
+    q.addQueueEventListener(listener)
+
+    then:
+    1 * q.poolMonitor.addEventListener(listener)
+  }
+
+  static class TestListener implements GrinderQEventListener {
+    @Override
+    void queueEventReceived(GrinderQEvent event) {
+    }
   }
 
   static class TestConsumer implements GrinderConsumer<String> {

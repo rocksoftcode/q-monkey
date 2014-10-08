@@ -8,7 +8,7 @@ class GrinderDemo {
       q.offer('foobar' + i)
     }
     q.start(new DemoConsumer(), Pulse.EXTRA_FAST, 100L)
-    Thread.sleep(1000L)
+    Thread.sleep(2000L)
 
     assert DemoConsumer.count == 1000
   }

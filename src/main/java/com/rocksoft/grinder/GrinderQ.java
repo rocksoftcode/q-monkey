@@ -1,5 +1,7 @@
 package com.rocksoft.grinder;
 
+import com.rocksoft.grinder.event.GrinderQEventListener;
+
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
@@ -11,6 +13,7 @@ public class GrinderQ<T> {
   private Queue<T> delegate;
   int poolSize;
   boolean isRunning;
+  PoolMonitor poolMonitor;
 
   private static final Pulse DEFAULT_PULSE = Pulse.EXTRA_FAST;
   private static final long DEFAULT_TIMEOUT = 5 * 60 * 1000;
@@ -22,6 +25,7 @@ public class GrinderQ<T> {
    */
   public GrinderQ(int numberThreads) {
     executorService = Executors.newScheduledThreadPool(numberThreads);
+    poolMonitor = new PoolMonitor(executorService);
     delegate = new ArrayBlockingQueue<T>(numberThreads * 10000);
     poolSize = numberThreads;
   }
@@ -47,7 +51,7 @@ public class GrinderQ<T> {
     if (isRunning) {
       throw new IllegalStateException("Queue is already running");
     } else {
-      PoolMonitor poolMonitor = new PoolMonitor(executorService, timeout);
+      poolMonitor.setTimeout(timeout);
       for (int i = 0; i < poolSize; i++) {
         executorService.scheduleWithFixedDelay(new PoolPoller<T>(delegate, poolMonitor, consumer), 0L, pulse.value(), TimeUnit.MILLISECONDS);
       }
@@ -62,5 +66,14 @@ public class GrinderQ<T> {
    */
   public void start(GrinderConsumer<T> consumer) {
     start(consumer, DEFAULT_PULSE, DEFAULT_TIMEOUT);
+  }
+
+  /**
+   * Adds a listener to the queue in order to respond to state change events
+   *
+   * @param listener any object that implements GrinderQEventListener
+   */
+  public void addQueueEventListener(GrinderQEventListener listener) {
+    poolMonitor.addEventListener(listener);
   }
 }
