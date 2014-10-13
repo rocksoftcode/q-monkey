@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class PoolMonitor {
-  long lastQueueEntryReceived;
+  long lastQueueEntryReceived = System.currentTimeMillis();
   long timeout;
   ScheduledExecutorService pool;
   Set<GrinderQEventListener> eventListeners = new HashSet<>();

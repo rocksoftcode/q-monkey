@@ -19,8 +19,8 @@ class PoolPoller<T> implements Runnable {
     try {
       T head = delegate.poll();
       if (head != null) {
-        consumer.consume(head);
         monitor.logReceived();
+        consumer.consume(head);
       } else {
         monitor.logEmpty();
       }
