@@ -6,6 +6,7 @@ import com.rocksoft.grinder.event.GrinderQEventType
 import spock.lang.Specification
 
 import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 
 class PoolMonitorSpec extends Specification {
 
@@ -34,7 +35,8 @@ class PoolMonitorSpec extends Specification {
     monitor.logEmpty()
 
     then:
-    1 * mockPool.shutdownNow()
+    1 * mockPool.shutdown()
+    1 * mockPool.awaitTermination(10, TimeUnit.SECONDS)
     1 * listener.queueEventReceived({ it.eventType == GrinderQEventType.QUEUE_STOPPED } as GrinderQEvent);
   }
 

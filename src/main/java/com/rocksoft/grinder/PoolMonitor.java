@@ -7,6 +7,7 @@ import com.rocksoft.grinder.event.GrinderQEventType;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class PoolMonitor {
   long lastQueueEntryReceived = System.currentTimeMillis();
@@ -33,9 +34,14 @@ public class PoolMonitor {
   }
 
   private void shutDown() {
-    pool.shutdownNow();
+    pool.shutdown();
     for (GrinderQEventListener listener : eventListeners) {
       listener.queueEventReceived(new GrinderQEvent(GrinderQEventType.QUEUE_STOPPED));
+    }
+    try {
+      pool.awaitTermination(10, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
   }
 
