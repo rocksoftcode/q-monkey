@@ -14,6 +14,7 @@ public class PoolMonitor {
   long timeout;
   ScheduledExecutorService pool;
   Set<GrinderQEventListener> eventListeners = new HashSet<>();
+  boolean shouldShutdownOnTimeout = true;
 
   public PoolMonitor(ScheduledExecutorService pool) {
     this.pool = pool;
@@ -23,21 +24,24 @@ public class PoolMonitor {
     this.timeout = timeout;
   }
 
+  void setShouldShutdownOnTimeout(boolean shouldShutdownOnTimeout) { this.shouldShutdownOnTimeout = shouldShutdownOnTimeout; }
+
   void logReceived() {
     lastQueueEntryReceived = System.currentTimeMillis();
   }
 
   void logEmpty() {
     if (System.currentTimeMillis() - lastQueueEntryReceived >= timeout) {
-      shutDown();
+      broadcastEvent(GrinderQEventType.QUEUE_TIMEOUT);
+      if (shouldShutdownOnTimeout) {
+        shutDown();
+      }
     }
   }
 
   private void shutDown() {
     pool.shutdown();
-    for (GrinderQEventListener listener : eventListeners) {
-      listener.queueEventReceived(new GrinderQEvent(GrinderQEventType.QUEUE_STOPPED));
-    }
+    broadcastEvent(GrinderQEventType.QUEUE_STOPPED);
     try {
       pool.awaitTermination(10, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
@@ -47,5 +51,11 @@ public class PoolMonitor {
 
   public void addEventListener(GrinderQEventListener listener) {
     eventListeners.add(listener);
+  }
+
+  private void broadcastEvent(GrinderQEventType eventType) {
+    for (GrinderQEventListener listener : eventListeners) {
+      listener.queueEventReceived(new GrinderQEvent(eventType));
+    }
   }
 }

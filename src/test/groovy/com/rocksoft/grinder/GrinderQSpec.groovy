@@ -11,14 +11,17 @@ import java.util.concurrent.TimeUnit
 class GrinderQSpec extends Specification {
 
   def "Initializes correctly"() {
-    when:
+    setup:
     GrinderQ<String> q = new GrinderQ<>(6)
 
-    then:
+    expect:
     q.executorService.corePoolSize == 6
     q.poolSize == 6
     ArrayBlockingQueue<String> delegate = q.delegate
     delegate.remainingCapacity() == 60000
+
+    where:
+    shouldShutdown << [false, true]
   }
 
   def "Offer delegates to wrapped queue"() {
@@ -39,7 +42,7 @@ class GrinderQSpec extends Specification {
     q.executorService = Mock(ScheduledExecutorService)
 
     when:
-    q.start(new TestConsumer(), Pulse.EXTRA_FAST, 1L)
+    q.start(new TestConsumer(), Pulse.EXTRA_FAST, 1L, true)
 
     then:
     2 * q.executorService.scheduleWithFixedDelay({ it.monitor.timeout == 1L && it.delegate == q.delegate && it.consumer instanceof TestConsumer } as PoolPoller<String>, 0L, Pulse.EXTRA_FAST.value(), TimeUnit.MILLISECONDS)

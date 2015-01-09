@@ -22,7 +22,7 @@ class PoolMonitorSpec extends Specification {
     monitor.lastQueueEntryReceived
   }
 
-  def "Shuts down monitor pool after timeout has elapsed"() {
+  def "Shuts down monitor pool after timeout has elapsed, broadcasts QUEUE_TIMEOUT and QUEUE_STOPPED"() {
     setup:
     ScheduledExecutorService mockPool = Mock()
     PoolMonitor monitor = new PoolMonitor(mockPool)
@@ -37,7 +37,9 @@ class PoolMonitorSpec extends Specification {
     then:
     1 * mockPool.shutdown()
     1 * mockPool.awaitTermination(10, TimeUnit.SECONDS)
-    1 * listener.queueEventReceived({ it.eventType == GrinderQEventType.QUEUE_STOPPED } as GrinderQEvent);
+    1 * listener.queueEventReceived({ it.eventType == GrinderQEventType.QUEUE_TIMEOUT } as GrinderQEvent)
+    1 * listener.queueEventReceived({ it.eventType == GrinderQEventType.QUEUE_STOPPED } as GrinderQEvent)
+    0 * listener.queueEventReceived(_)
   }
 
   def "Does not shut down pool if timeout has not elapsed"() {
@@ -52,6 +54,25 @@ class PoolMonitorSpec extends Specification {
 
     then:
     0 * mockPool._
+  }
+
+  def "Does not shut down monitor pool if timeout has elapsed and should shutdown is set to false, broadcasts QUEUE_TIMEOUT"() {
+    setup:
+    ScheduledExecutorService mockPool = Mock()
+    PoolMonitor monitor = new PoolMonitor(mockPool)
+    monitor.setTimeout(10L)
+    monitor.setShouldShutdownOnTimeout(false)
+    monitor.lastQueueEntryReceived = System.currentTimeMillis() - 600L
+    GrinderQEventListener listener = Mock()
+    monitor.eventListeners = [listener]
+
+    when:
+    monitor.logEmpty()
+
+    then:
+    0 * mockPool._
+    1 * listener.queueEventReceived({ it.eventType == GrinderQEventType.QUEUE_TIMEOUT } as GrinderQEvent)
+    0 * listener.queueEventReceived(_)
   }
 
   def "Adds event listener"() {
