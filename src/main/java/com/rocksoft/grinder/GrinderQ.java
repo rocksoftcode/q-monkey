@@ -17,7 +17,6 @@ public class GrinderQ<T> {
 
   private static final Pulse DEFAULT_PULSE = Pulse.EXTRA_FAST;
   private static final long DEFAULT_TIMEOUT = 5 * 60 * 1000;
-  private static final boolean DEFAULT_SHOULD_SHUTDOWN_ON_TIMEOUT = true;
 
   /**
    * Constructs a new Grinder Queue
@@ -25,6 +24,10 @@ public class GrinderQ<T> {
    * @param numberThreads The maximum number of threads to apply to this queue
    */
   public GrinderQ(int numberThreads) {
+    initialize(numberThreads);
+  }
+
+  private void initialize(int numberThreads) {
     executorService = Executors.newScheduledThreadPool(numberThreads);
     poolMonitor = new PoolMonitor(executorService);
     delegate = new ArrayBlockingQueue<T>(numberThreads * 10000);
@@ -54,17 +57,18 @@ public class GrinderQ<T> {
    * @param timeout                 The amount of time, in milliseconds, the queue will stay alive without activity
    * @param shouldShutdownOnTimeout Whether the queue should shutdown when the timeout is reached.
    */
-  public void start(GrinderConsumer<T> consumer, Pulse pulse, long timeout, boolean shouldShutdownOnTimeout) {
+  public void start(GrinderConsumer<T> consumer, Pulse pulse, long timeout) {
     if (isRunning) {
       throw new IllegalStateException("Queue is already running");
-    } else {
-      poolMonitor.setTimeout(timeout);
-      poolMonitor.setShouldShutdownOnTimeout(shouldShutdownOnTimeout);
-      for (int i = 0; i < poolSize; i++) {
-        executorService.scheduleWithFixedDelay(new PoolPoller<T>(delegate, poolMonitor, consumer), 0L, pulse.value(), TimeUnit.MILLISECONDS);
-      }
-      isRunning = true;
     }
+    if (executorService.isShutdown() || executorService.isTerminated()) {
+      initialize(poolSize);
+    }
+    poolMonitor.setTimeout(timeout);
+    for (int i = 0; i < poolSize; i++) {
+      executorService.scheduleWithFixedDelay(new PoolPoller<T>(delegate, poolMonitor, consumer), 0L, pulse.value(), TimeUnit.MILLISECONDS);
+    }
+    isRunning = true;
   }
 
   /**
@@ -73,7 +77,7 @@ public class GrinderQ<T> {
    * @param consumer An implementation of GrinderConsumer that will operate on a queue element
    */
   public void start(GrinderConsumer<T> consumer) {
-    start(consumer, DEFAULT_PULSE, DEFAULT_TIMEOUT, DEFAULT_SHOULD_SHUTDOWN_ON_TIMEOUT);
+    start(consumer, DEFAULT_PULSE, DEFAULT_TIMEOUT);
   }
 
   /**

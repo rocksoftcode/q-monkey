@@ -42,7 +42,7 @@ class GrinderQSpec extends Specification {
     q.executorService = Mock(ScheduledExecutorService)
 
     when:
-    q.start(new TestConsumer(), Pulse.EXTRA_FAST, 1L, true)
+    q.start(new TestConsumer(), Pulse.EXTRA_FAST, 1L)
 
     then:
     2 * q.executorService.scheduleWithFixedDelay({ it.monitor.timeout == 1L && it.delegate == q.delegate && it.consumer instanceof TestConsumer } as PoolPoller<String>, 0L, Pulse.EXTRA_FAST.value(), TimeUnit.MILLISECONDS)
