@@ -1,6 +1,8 @@
 package com.rocksoft.grinder;
 
+import com.rocksoft.grinder.event.GrinderQEvent;
 import com.rocksoft.grinder.event.GrinderQEventListener;
+import com.rocksoft.grinder.event.GrinderQEventType;
 
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -8,7 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class GrinderQ<T> {
+public class GrinderQ<T> implements GrinderQEventListener {
   private ScheduledExecutorService executorService;
   private Queue<T> delegate;
   int poolSize;
@@ -16,6 +18,7 @@ public class GrinderQ<T> {
   PoolMonitor poolMonitor;
 
   private static final Pulse DEFAULT_PULSE = Pulse.EXTRA_FAST;
+  private static final long DEFAULT_INITIAL_DELAY = 500;
   private static final long DEFAULT_TIMEOUT = 5 * 60 * 1000;
 
   /**
@@ -45,19 +48,15 @@ public class GrinderQ<T> {
   }
 
   /**
-   * Starts listening to the queue, operating on new entries. If the timeout is reached since the last queue activity, and
-   * the queue is set to shutdownOnTimeout, it will broadcast a GrinderQEventType.QUEUE_TIMEOUT even, shutdown, and
-   * broadcast a GrinderQEventType.QUEUE_STOPPED event.
-   *
-   * In scenarios where the queue should be kept running, shouldShutdownOnTimeout should be set to false, and a
-   * GrinderQEventType.QUEUE_TIMEOUT event is broadcast.
+   * Starts listening to the queue, operating on new entries.
    *
    * @param consumer                An implementation of GrinderConsumer that will operate on a queue element
+   * @param initialDelay            The time in milliseconds to delay first execution of the consumer task
    * @param pulse                   The frequency with which the queue is checked
    * @param timeout                 The amount of time, in milliseconds, the queue will stay alive without activity
    * @param shouldShutdownOnTimeout Whether the queue should shutdown when the timeout is reached.
    */
-  public void start(GrinderConsumer<T> consumer, Pulse pulse, long timeout) {
+  public void start(GrinderConsumer<T> consumer, long initialDelay, Pulse pulse, long timeout) {
     if (isRunning) {
       throw new IllegalStateException("Queue is already running");
     }
@@ -66,9 +65,10 @@ public class GrinderQ<T> {
     }
     poolMonitor.setTimeout(timeout);
     for (int i = 0; i < poolSize; i++) {
-      executorService.scheduleWithFixedDelay(new PoolPoller<T>(delegate, poolMonitor, consumer), 0L, pulse.value(), TimeUnit.MILLISECONDS);
+      executorService.scheduleWithFixedDelay(new PoolPoller<T>(delegate, poolMonitor, consumer), initialDelay, pulse.value(), TimeUnit.MILLISECONDS);
     }
     isRunning = true;
+    addQueueEventListener(this);
   }
 
   /**
@@ -77,7 +77,7 @@ public class GrinderQ<T> {
    * @param consumer An implementation of GrinderConsumer that will operate on a queue element
    */
   public void start(GrinderConsumer<T> consumer) {
-    start(consumer, DEFAULT_PULSE, DEFAULT_TIMEOUT);
+    start(consumer, DEFAULT_INITIAL_DELAY, DEFAULT_PULSE, DEFAULT_TIMEOUT);
   }
 
   /**
@@ -87,5 +87,16 @@ public class GrinderQ<T> {
    */
   public void addQueueEventListener(GrinderQEventListener listener) {
     poolMonitor.addEventListener(listener);
+  }
+
+  @Override
+  public void queueEventReceived(GrinderQEvent event) {
+    if (event.getEventType() == GrinderQEventType.QUEUE_STOPPED) {
+      isRunning = false;
+    }
+  }
+
+  public boolean isRunning() {
+    return isRunning;
   }
 }

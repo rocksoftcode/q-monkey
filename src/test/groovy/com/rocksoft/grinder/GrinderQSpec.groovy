@@ -2,6 +2,7 @@ package com.rocksoft.grinder
 
 import com.rocksoft.grinder.event.GrinderQEvent
 import com.rocksoft.grinder.event.GrinderQEventListener
+import com.rocksoft.grinder.event.GrinderQEventType
 import spock.lang.Specification
 
 import java.util.concurrent.ArrayBlockingQueue
@@ -42,7 +43,7 @@ class GrinderQSpec extends Specification {
     q.executorService = Mock(ScheduledExecutorService)
 
     when:
-    q.start(new TestConsumer(), Pulse.EXTRA_FAST, 1L)
+    q.start(new TestConsumer(), 0L, Pulse.EXTRA_FAST, 1L)
 
     then:
     2 * q.executorService.scheduleWithFixedDelay({ it.monitor.timeout == 1L && it.delegate == q.delegate && it.consumer instanceof TestConsumer } as PoolPoller<String>, 0L, Pulse.EXTRA_FAST.value(), TimeUnit.MILLISECONDS)
@@ -57,7 +58,8 @@ class GrinderQSpec extends Specification {
     q.start(new TestConsumer())
 
     then:
-    2 * q.executorService.scheduleWithFixedDelay({ it.monitor.timeout == 300000 && it.delegate == q.delegate && it.consumer instanceof TestConsumer } as PoolPoller<String>, 0L, Pulse.EXTRA_FAST.value(), TimeUnit.MILLISECONDS)
+    2 * q.executorService.scheduleWithFixedDelay({ it.monitor.timeout == 300000 && it.delegate == q.delegate && it.consumer instanceof TestConsumer } as PoolPoller<String>, 500L, Pulse.EXTRA_FAST.value(), TimeUnit.MILLISECONDS)
+    q.isRunning()
   }
 
   def "Does not start threads if they are already running"() {
@@ -85,6 +87,19 @@ class GrinderQSpec extends Specification {
 
     then:
     1 * q.poolMonitor.addEventListener(listener)
+  }
+
+  def "Handles queue stopped event"() {
+    setup:
+    GrinderQ<String> q = new GrinderQ<>(2)
+    q.executorService = Mock(ScheduledExecutorService)
+    q.start(new TestConsumer())
+
+    when:
+    q.poolMonitor.broadcastEvent(GrinderQEventType.QUEUE_STOPPED)
+
+    then:
+    !q.isRunning()
   }
 
   static class TestListener implements GrinderQEventListener {

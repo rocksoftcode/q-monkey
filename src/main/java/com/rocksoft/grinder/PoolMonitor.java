@@ -35,19 +35,19 @@ public class PoolMonitor {
 
   private void shutDown() {
     pool.shutdown();
-    broadcastEvent(GrinderQEventType.QUEUE_STOPPED);
     try {
       pool.awaitTermination(10, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
+    broadcastEvent(GrinderQEventType.QUEUE_STOPPED);
   }
 
   public void addEventListener(GrinderQEventListener listener) {
     eventListeners.add(listener);
   }
 
-  private void broadcastEvent(GrinderQEventType eventType) {
+  void broadcastEvent(GrinderQEventType eventType) {
     for (GrinderQEventListener listener : eventListeners) {
       listener.queueEventReceived(new GrinderQEvent(eventType));
     }

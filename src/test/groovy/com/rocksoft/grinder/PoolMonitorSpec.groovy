@@ -22,7 +22,7 @@ class PoolMonitorSpec extends Specification {
     monitor.lastQueueEntryReceived
   }
 
-  def "Shuts down monitor pool after timeout has elapsed, broadcasts QUEUE_TIMEOUT and QUEUE_STOPPED"() {
+  def "Shuts down monitor pool after timeout has elapsed, broadcasts QUEUE_STOPPED"() {
     setup:
     ScheduledExecutorService mockPool = Mock()
     PoolMonitor monitor = new PoolMonitor(mockPool)
