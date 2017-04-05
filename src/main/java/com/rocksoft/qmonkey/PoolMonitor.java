@@ -1,8 +1,8 @@
-package com.rocksoft.grinder;
+package com.rocksoft.qmonkey;
 
-import com.rocksoft.grinder.event.GrinderQEvent;
-import com.rocksoft.grinder.event.GrinderQEventListener;
-import com.rocksoft.grinder.event.GrinderQEventType;
+import com.rocksoft.qmonkey.event.QMonkeyEvent;
+import com.rocksoft.qmonkey.event.QMonkeyEventListener;
+import com.rocksoft.qmonkey.event.QMonkeyEventType;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -13,7 +13,7 @@ public class PoolMonitor {
   long lastQueueEntryReceived = System.currentTimeMillis();
   long timeout;
   ScheduledExecutorService pool;
-  Set<GrinderQEventListener> eventListeners = new HashSet<>();
+  Set<QMonkeyEventListener> eventListeners = new HashSet<>();
 
   public PoolMonitor(ScheduledExecutorService pool) {
     this.pool = pool;
@@ -40,16 +40,16 @@ public class PoolMonitor {
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-    broadcastEvent(GrinderQEventType.QUEUE_STOPPED);
+    broadcastEvent(QMonkeyEventType.QUEUE_STOPPED);
   }
 
-  public void addEventListener(GrinderQEventListener listener) {
+  public void addEventListener(QMonkeyEventListener listener) {
     eventListeners.add(listener);
   }
 
-  void broadcastEvent(GrinderQEventType eventType) {
-    for (GrinderQEventListener listener : eventListeners) {
-      listener.queueEventReceived(new GrinderQEvent(eventType));
+  void broadcastEvent(QMonkeyEventType eventType) {
+    for (QMonkeyEventListener listener : eventListeners) {
+      listener.queueEventReceived(new QMonkeyEvent(eventType));
     }
   }
 }

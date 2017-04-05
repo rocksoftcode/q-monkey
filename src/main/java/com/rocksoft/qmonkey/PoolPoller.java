@@ -1,14 +1,14 @@
-package com.rocksoft.grinder;
+package com.rocksoft.qmonkey;
 
 import java.util.Queue;
 
 class PoolPoller<T> implements Runnable {
 
   Queue<T> delegate;
-  GrinderConsumer<T> consumer;
+  QMonkeyConsumer<T> consumer;
   PoolMonitor monitor;
 
-  PoolPoller(Queue<T> delegate, PoolMonitor monitor, GrinderConsumer<T> consumer) {
+  PoolPoller(Queue<T> delegate, PoolMonitor monitor, QMonkeyConsumer<T> consumer) {
     this.delegate = delegate;
     this.consumer = consumer;
     this.monitor = monitor;

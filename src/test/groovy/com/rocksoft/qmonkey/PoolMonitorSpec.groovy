@@ -1,8 +1,8 @@
-package com.rocksoft.grinder
+package com.rocksoft.qmonkey
 
-import com.rocksoft.grinder.event.GrinderQEvent
-import com.rocksoft.grinder.event.GrinderQEventListener
-import com.rocksoft.grinder.event.GrinderQEventType
+import com.rocksoft.qmonkey.event.QMonkeyEvent
+import com.rocksoft.qmonkey.event.QMonkeyEventListener
+import com.rocksoft.qmonkey.event.QMonkeyEventType
 import spock.lang.Specification
 
 import java.util.concurrent.ScheduledExecutorService
@@ -26,7 +26,7 @@ class PoolMonitorSpec extends Specification {
     setup:
     ScheduledExecutorService mockPool = Mock()
     PoolMonitor monitor = new PoolMonitor(mockPool)
-    GrinderQEventListener listener = Mock()
+    QMonkeyEventListener listener = Mock()
     monitor.eventListeners = [listener]
     monitor.setTimeout(666L)
     monitor.lastQueueEntryReceived = System.currentTimeMillis() - 1000L
@@ -37,7 +37,7 @@ class PoolMonitorSpec extends Specification {
     then:
     1 * mockPool.shutdown()
     1 * mockPool.awaitTermination(10, TimeUnit.SECONDS)
-    1 * listener.queueEventReceived({ it.eventType == GrinderQEventType.QUEUE_STOPPED } as GrinderQEvent)
+    1 * listener.queueEventReceived({ it.eventType == QMonkeyEventType.QUEUE_STOPPED } as QMonkeyEvent)
     0 * listener.queueEventReceived(_)
   }
 
@@ -58,7 +58,7 @@ class PoolMonitorSpec extends Specification {
   def "Adds event listener"() {
    setup:
    PoolMonitor monitor = new PoolMonitor(null)
-   GrinderQEventListener mockListener = Mock(GrinderQEventListener)
+   QMonkeyEventListener mockListener = Mock(QMonkeyEventListener)
 
     when:
     monitor.addEventListener(mockListener)

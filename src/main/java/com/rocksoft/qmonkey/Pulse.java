@@ -1,4 +1,4 @@
-package com.rocksoft.grinder;
+package com.rocksoft.qmonkey;
 
 public enum Pulse {
   EXTRA_SLOW(30000L), SLOW(5000L), NORMAL(1000L), FAST(500L), EXTRA_FAST(1L);

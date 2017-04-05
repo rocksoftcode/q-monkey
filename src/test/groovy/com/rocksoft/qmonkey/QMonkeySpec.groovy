@@ -1,19 +1,19 @@
-package com.rocksoft.grinder
+package com.rocksoft.qmonkey
 
-import com.rocksoft.grinder.event.GrinderQEvent
-import com.rocksoft.grinder.event.GrinderQEventListener
-import com.rocksoft.grinder.event.GrinderQEventType
+import com.rocksoft.qmonkey.event.QMonkeyEvent
+import com.rocksoft.qmonkey.event.QMonkeyEventListener
+import com.rocksoft.qmonkey.event.QMonkeyEventType
 import spock.lang.Specification
 
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
-class GrinderQSpec extends Specification {
+class QMonkeySpec extends Specification {
 
   def "Initializes correctly"() {
     setup:
-    GrinderQ<String> q = new GrinderQ<>(6)
+    QMonkeyMonkey<String> q = new QMonkeyMonkey<>(6)
 
     expect:
     q.executorService.corePoolSize == 6
@@ -27,7 +27,7 @@ class GrinderQSpec extends Specification {
 
   def "Offer delegates to wrapped queue"() {
     setup:
-    GrinderQ<String> q = new GrinderQ<>(6)
+    QMonkeyMonkey<String> q = new QMonkeyMonkey<>(6)
 
     when:
     q.offer("foobar")
@@ -39,7 +39,7 @@ class GrinderQSpec extends Specification {
 
   def "Creates threads with consumer tasks"() {
     setup:
-    GrinderQ<String> q = new GrinderQ<>(2)
+    QMonkeyMonkey<String> q = new QMonkeyMonkey<>(2)
     q.executorService = Mock(ScheduledExecutorService)
 
     when:
@@ -51,7 +51,7 @@ class GrinderQSpec extends Specification {
 
   def "Creates threads with consumer tasks using default values for pulse and timeout"() {
     setup:
-    GrinderQ<String> q = new GrinderQ<>(2)
+    QMonkeyMonkey<String> q = new QMonkeyMonkey<>(2)
     q.executorService = Mock(ScheduledExecutorService)
 
     when:
@@ -64,7 +64,7 @@ class GrinderQSpec extends Specification {
 
   def "Does not start threads if they are already running"() {
     setup:
-    GrinderQ<String> q = new GrinderQ<>(2)
+    QMonkeyMonkey<String> q = new QMonkeyMonkey<>(2)
     q.executorService = Mock(ScheduledExecutorService)
     q.start(new TestConsumer())
 
@@ -78,7 +78,7 @@ class GrinderQSpec extends Specification {
 
   def "Adds listener to pool monitor"() {
     setup:
-    GrinderQ<String> q = new GrinderQ<>(2)
+    QMonkeyMonkey<String> q = new QMonkeyMonkey<>(2)
     q.poolMonitor = Mock(PoolMonitor)
     TestListener listener = new TestListener()
 
@@ -91,24 +91,24 @@ class GrinderQSpec extends Specification {
 
   def "Handles queue stopped event"() {
     setup:
-    GrinderQ<String> q = new GrinderQ<>(2)
+    QMonkeyMonkey<String> q = new QMonkeyMonkey<>(2)
     q.executorService = Mock(ScheduledExecutorService)
     q.start(new TestConsumer())
 
     when:
-    q.poolMonitor.broadcastEvent(GrinderQEventType.QUEUE_STOPPED)
+    q.poolMonitor.broadcastEvent(QMonkeyEventType.QUEUE_STOPPED)
 
     then:
     !q.isRunning()
   }
 
-  static class TestListener implements GrinderQEventListener {
+  static class TestListener implements QMonkeyEventListener {
     @Override
-    void queueEventReceived(GrinderQEvent event) {
+    void queueEventReceived(QMonkeyEvent event) {
     }
   }
 
-  static class TestConsumer implements GrinderConsumer<String> {
+  static class TestConsumer implements QMonkeyConsumer<String> {
 
     @Override
     void consume(String item) {

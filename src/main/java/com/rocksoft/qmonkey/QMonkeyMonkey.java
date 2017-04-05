@@ -1,8 +1,8 @@
-package com.rocksoft.grinder;
+package com.rocksoft.qmonkey;
 
-import com.rocksoft.grinder.event.GrinderQEvent;
-import com.rocksoft.grinder.event.GrinderQEventListener;
-import com.rocksoft.grinder.event.GrinderQEventType;
+import com.rocksoft.qmonkey.event.QMonkeyEvent;
+import com.rocksoft.qmonkey.event.QMonkeyEventListener;
+import com.rocksoft.qmonkey.event.QMonkeyEventType;
 
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -10,7 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class GrinderQ<T> implements GrinderQEventListener {
+public class QMonkeyMonkey<T> implements QMonkeyEventListener {
   private ScheduledExecutorService executorService;
   private Queue<T> delegate;
   int poolSize;
@@ -22,11 +22,11 @@ public class GrinderQ<T> implements GrinderQEventListener {
   private static final long DEFAULT_TIMEOUT = 5 * 60 * 1000;
 
   /**
-   * Constructs a new Grinder Queue
+   * Constructs a new QMonkey
    *
    * @param numberThreads The maximum number of threads to apply to this queue
    */
-  public GrinderQ(int numberThreads) {
+  public QMonkeyMonkey(int numberThreads) {
     initialize(numberThreads);
   }
 
@@ -50,13 +50,13 @@ public class GrinderQ<T> implements GrinderQEventListener {
   /**
    * Starts listening to the queue, operating on new entries.
    *
-   * @param consumer                An implementation of GrinderConsumer that will operate on a queue element
+   * @param consumer                An implementation of QMonkeyConsumer that will operate on a queue element
    * @param initialDelay            The time in milliseconds to delay first execution of the consumer task
    * @param pulse                   The frequency with which the queue is checked
    * @param timeout                 The amount of time, in milliseconds, the queue will stay alive without activity
    * @param shouldShutdownOnTimeout Whether the queue should shutdown when the timeout is reached.
    */
-  public void start(GrinderConsumer<T> consumer, long initialDelay, Pulse pulse, long timeout) {
+  public void start(QMonkeyConsumer<T> consumer, long initialDelay, Pulse pulse, long timeout) {
     if (isRunning) {
       throw new IllegalStateException("Queue is already running");
     }
@@ -74,24 +74,24 @@ public class GrinderQ<T> implements GrinderQEventListener {
   /**
    * Starts listening to the queue, operating on new entries with the default pulse and timeout/shutdown settings
    *
-   * @param consumer An implementation of GrinderConsumer that will operate on a queue element
+   * @param consumer An implementation of QMonkeyConsumer that will operate on a queue element
    */
-  public void start(GrinderConsumer<T> consumer) {
+  public void start(QMonkeyConsumer<T> consumer) {
     start(consumer, DEFAULT_INITIAL_DELAY, DEFAULT_PULSE, DEFAULT_TIMEOUT);
   }
 
   /**
    * Adds a listener to the queue in order to respond to state change events
    *
-   * @param listener any object that implements GrinderQEventListener
+   * @param listener any object that implements QMonkeyEventListener
    */
-  public void addQueueEventListener(GrinderQEventListener listener) {
+  public void addQueueEventListener(QMonkeyEventListener listener) {
     poolMonitor.addEventListener(listener);
   }
 
   @Override
-  public void queueEventReceived(GrinderQEvent event) {
-    if (event.getEventType() == GrinderQEventType.QUEUE_STOPPED) {
+  public void queueEventReceived(QMonkeyEvent event) {
+    if (event.getEventType() == QMonkeyEventType.QUEUE_STOPPED) {
       isRunning = false;
     }
   }

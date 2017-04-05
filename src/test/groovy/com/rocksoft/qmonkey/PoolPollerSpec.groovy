@@ -1,4 +1,4 @@
-package com.rocksoft.grinder
+package com.rocksoft.qmonkey
 
 import spock.lang.Specification
 
@@ -6,7 +6,7 @@ class PoolPollerSpec extends Specification {
 
   def "Poller calls consumer"() {
     setup:
-    GrinderConsumer<String> mockConsumer = Mock()
+    QMonkeyConsumer<String> mockConsumer = Mock()
     PoolMonitor mockMonitor = Mock()
     PoolPoller poller = new PoolPoller(new ArrayDeque<String>(), mockMonitor, mockConsumer)
     poller.delegate.offer("foobar")
@@ -22,7 +22,7 @@ class PoolPollerSpec extends Specification {
 
   def "Poller logs empty status of queue"() {
     setup:
-    GrinderConsumer<String> mockConsumer = Mock()
+    QMonkeyConsumer<String> mockConsumer = Mock()
     PoolMonitor mockMonitor = Mock()
     PoolPoller poller = new PoolPoller(new ArrayDeque<String>(), mockMonitor, mockConsumer)
 
@@ -36,7 +36,7 @@ class PoolPollerSpec extends Specification {
 
   def "Poller swallows exception"() {
     setup:
-    GrinderConsumer<String> mockConsumer = Mock()
+    QMonkeyConsumer<String> mockConsumer = Mock()
     PoolMonitor mockMonitor = Mock()
     PoolPoller poller = new PoolPoller(new ArrayDeque<String>(), mockMonitor, mockConsumer)
     poller.delegate.offer("foobar")

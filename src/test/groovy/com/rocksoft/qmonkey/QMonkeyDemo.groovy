@@ -1,9 +1,9 @@
-package com.rocksoft.grinder
+package com.rocksoft.qmonkey
 
-class GrinderDemo {
+class QMonkeyDemo {
 
   static void main(String[] args) {
-    GrinderQ<String> q = new GrinderQ<>(21)
+    QMonkeyMonkey<String> q = new QMonkeyMonkey<>(21)
     (1..1000).each { i ->
       q.offer('foobar' + i)
     }
@@ -13,7 +13,7 @@ class GrinderDemo {
     assert DemoConsumer.count == 1000
   }
 
-  static class DemoConsumer implements GrinderConsumer<String> {
+  static class DemoConsumer implements QMonkeyConsumer<String> {
     static int count
     void consume(String item) {
       count++
